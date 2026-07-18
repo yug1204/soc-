@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOC Analyst Academy — Learn Cybersecurity in 120 Days</title>
+  <meta name="description" content="A gamified 120-day learning journey from zero to SOC Analyst. Daily streak tracking, curated YouTube videos, hands-on labs, and achievement badges." />
+  <meta name="keywords" content="SOC analyst, cybersecurity, SIEM, threat hunting, incident response, learn cybersecurity" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────── -->
+    <aside class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-logo">
+        <span class="logo-icon" aria-hidden="true">🛡️</span>
+        <div class="logo-title">SOC Analyst<br>Academy</div>
+        <div class="logo-sub">Zero to Defender</div>
+      </div>
+
+      <nav class="nav-section">
+        <div class="nav-label">Navigate</div>
+
+        <button class="nav-btn active" data-nav="dashboard" id="nav-dashboard" aria-label="Dashboard">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-btn" data-nav="today" id="nav-today" aria-label="Today's Lesson">
+          <span class="nav-icon" aria-hidden="true">📅</span>
+          <span>Today's Lesson</span>
+        </button>
+
+        <button class="nav-btn" data-nav="curriculum" id="nav-curriculum" aria-label="Curriculum Map">
+          <span class="nav-icon" aria-hidden="true">📚</span>
+          <span>Curriculum</span>
+        </button>
+
+        <button class="nav-btn" data-nav="achievements" id="nav-achievements" aria-label="Achievements">
+          <span class="nav-icon" aria-hidden="true">🏆</span>
+          <span>Achievements</span>
+        </button>
+      </nav>
+
+      <!-- Mini Streak Display -->
+      <div class="sidebar-streak" aria-live="polite">
+        <div class="sidebar-streak-num" id="sidebar-streak-num">0</div>
+        <div class="sidebar-streak-lbl">Day Streak 🔥</div>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────── -->
+    <div class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-right">
+          <button class="today-btn" onclick="window.goToView('today')" id="start-today-btn">
+            ▶ Start Today's Lesson
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content-area">
+
+        <!-- Dashboard View -->
+        <section class="view" id="view-dashboard" role="main" aria-label="Dashboard">
+          <!-- Rendered by app.js -->
+          <div style="text-align:center;padding:60px;color:var(--text-dim)">Loading...</div>
+        </section>
+
+        <!-- Today's Lesson View -->
+        <section class="view" id="view-today" role="main" aria-label="Today's Lesson">
+          <!-- Rendered by app.js -->
+        </section>
+
+        <!-- Curriculum View -->
+        <section class="view" id="view-curriculum" role="main" aria-label="Curriculum Map">
+          <!-- Rendered by app.js -->
+        </section>
+
+        <!-- Achievements View -->
+        <section class="view" id="view-achievements" role="main" aria-label="Achievements">
+          <!-- Rendered by app.js -->
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- JS — Module -->
+  <script type="module">
+    import { initStreak, getStreak } from './js/streak.js';
+    import './js/app.js';
+
+    // Update sidebar streak number reactively
+    function updateSidebarStreak() {
+      const el = document.getElementById('sidebar-streak-num');
+      if (el) el.textContent = getStreak();
+    }
+
+    // Sync topbar title with nav
+    document.querySelectorAll('[data-nav]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const titles = {
+          dashboard: 'Dashboard',
+          today: "Today's Lesson",
+          curriculum: '120-Day Curriculum',
+          achievements: 'Achievements & Badges'
+        };
+        const topbar = document.getElementById('topbar-title');
+        if (topbar) topbar.textContent = titles[btn.getAttribute('data-nav')] || '';
+        updateSidebarStreak();
+      });
+    });
+
+    // Initial update
+    setTimeout(updateSidebarStreak, 100);
+  </script>
+
+</body>
+</html>
