@@ -136,17 +136,14 @@ router.get('/google', (req, res, next) => {
 
 router.get('/google/callback', (req, res, next) => {
   if (!googleEnabled) {
-    return res.redirect(
-      (process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500') +
-      '/?error=google_not_configured'
-    );
+    return res.redirect('/?error=google_not_configured');
   }
   passport.authenticate('google', {
     session: false,
-    failureRedirect: (process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500') + '/?error=google_failed',
+    failureRedirect: '/?error=google_failed',
   })(req, res, () => {
     issueToken(res, req.user._id);
-    res.redirect(process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500');
+    res.redirect('/');
   });
 });
 
