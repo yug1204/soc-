@@ -6,7 +6,7 @@
 
 // ─── Low-level fetch helper ───────────────────
 async function apiPost(path, body) {
-  const apiBase = window.API_BASE || 'http://localhost:3001';
+  const apiBase = window.API_BASE ;
   const res = await fetch(apiBase + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -19,7 +19,7 @@ async function apiPost(path, body) {
 }
 
 async function apiGet(path) {
-  const apiBase = window.API_BASE || 'http://localhost:3001';
+  const apiBase = window.API_BASE ;
   const res = await fetch(apiBase + path, { credentials: 'include' });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
@@ -64,7 +64,7 @@ async function loginDemo() {
 
 async function loginGoogle(email) {
   // Redirects to Google OAuth flow via backend
-  const apiBase = window.API_BASE || 'http://localhost:3001';
+  const apiBase = window.API_BASE ;
   window.location.href = apiBase + '/api/auth/google';
 }
 
@@ -104,7 +104,7 @@ function updateAvatar(base64) {
     profile.avatar = base64;
     _cacheProfile(profile);
     // Sync to backend in background
-    const apiBase = window.API_BASE || 'http://localhost:3001';
+    const apiBase = window.API_BASE ;
     fetch(apiBase + '/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -119,7 +119,7 @@ function updateProfileName(name) {
   if (profile) {
     profile.name = name;
     _cacheProfile(profile);
-    const apiBase = window.API_BASE || 'http://localhost:3001';
+    const apiBase = window.API_BASE ;
     fetch(apiBase + '/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

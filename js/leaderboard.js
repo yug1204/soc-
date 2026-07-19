@@ -18,7 +18,7 @@ const SEED_PLAYERS = [
 
 async function getLeaderboard() {
   try {
-    const apiBase = window.API_BASE || 'http://localhost:3001';
+    const apiBase = window.API_BASE ;
     const res = await fetch(apiBase + '/api/leaderboard', { credentials: 'include' });
     if (res.ok) {
       const data = await res.json();

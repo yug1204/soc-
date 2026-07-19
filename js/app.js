@@ -8,7 +8,9 @@ let currentView = 'dashboard';
 let currentDayNum = 1;
 
 // ─── API base URL (change to your server address if deployed) ───
-window.API_BASE = 'http://localhost:3001';
+window.API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+  ? 'http://localhost:3001' 
+  : '';
 
 // ── Error Boundary ──────────────────────────────
 window.addEventListener('unhandledrejection', (e) => {
@@ -626,7 +628,7 @@ window.showGoogleLogin = async function() {
   if (modal) modal.classList.remove('hidden');
   // Check if server has Google credentials configured
   try {
-    const apiBase = window.API_BASE || 'http://localhost:3001';
+    const apiBase = window.API_BASE ;
     const res = await fetch(apiBase + '/api/auth/google-status');
     const { enabled } = await res.json();
     const modalContent = modal.querySelector('.modal-content');

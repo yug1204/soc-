@@ -3,7 +3,7 @@
 // Uses backend API with localStorage as cache/fallback.
 // =============================================
 
-var progressAPI = window.API_BASE || 'http://localhost:3001';
+var progressAPI = window.API_BASE ;
 
 // ─── In-memory progress cache (loaded once per session) ───
 let _progressCache = null;
