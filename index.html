@@ -20,8 +20,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,400,0,0" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles/main.css?v=10" />
+  <link rel="stylesheet" href="styles/main.css?v=20" />
 </head>
 
 <body>
@@ -31,9 +30,9 @@
 
   <!-- Boot spinner — shown while restoring session from backend -->
   <div id="boot-spinner"
-    style="display:flex;position:fixed;inset:0;z-index:99999;background:#000;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    style="display:flex;position:fixed;inset:0;z-index:99999;background:var(--c-base);align-items:center;justify-content:center;flex-direction:column;gap:16px;">
     <span class="material-symbols-sharp"
-      style="font-size:64px;color:var(--c-green);text-shadow:0 0 24px var(--c-green);animation:pulse 1.5s ease-in-out infinite">radar</span>
+      style="font-size:64px;color:var(--c-green);animation:pulse 1.5s ease-in-out infinite">radar</span>
     <div style="font-family:'JetBrains Mono',monospace;color:var(--c-green);font-size:14px;letter-spacing:0.1em">
       ESTABLISHING SECURE CONNECTION...</div>
   </div>
@@ -43,7 +42,7 @@
 
     <!-- Left: Mission Brief -->
     <div class="login-brief">
-      <span class="login-logo" style="color:var(--c-green); text-shadow:0 0 12px var(--c-green)"><span
+      <span class="login-logo" style="color:var(--c-green)"><span
           class="material-symbols-sharp" style="font-size: 48px;">radar</span></span>
       <h1 class="login-title">120 days.<br>One lesson a day.<br><em>SOC analyst</em><br>on day 121.</h1>
       <p class="login-sub">A structured path from zero to working security analyst. No experience needed. No skipping.
@@ -51,58 +50,15 @@
 
       <div class="login-options">
         <button class="login-btn google-btn" onclick="showGoogleLogin()">
-          <span class="login-btn-icon material-symbols-sharp" style="color:#74c0fc">public</span> Continue with Google
+          <span class="login-btn-icon material-symbols-sharp" style="color:#2563eb">public</span> Continue with Google
         </button>
         <button class="login-btn manual-btn" onclick="showManualLogin()">
-          <span class="login-btn-icon material-symbols-sharp" style="color:#cc5de8">mail</span> Sign in with Email
+          <span class="login-btn-icon material-symbols-sharp" style="color:#0f172a">mail</span> Sign in with Email
         </button>
         <div class="login-divider"><span>or</span></div>
         <button class="login-btn demo-btn" onclick="loginAsDemo()">
-          <span class="login-btn-icon material-symbols-sharp" style="color:var(--c-static)">fingerprint</span> Try it
-          without signing up
+          <span class="login-btn-icon material-symbols-sharp" style="color:var(--c-static)">person</span> Try Demo Account
         </button>
-      </div>
-    </div>
-
-    <!-- Right: Curriculum Preview -->
-    <div class="login-preview">
-      <div class="login-preview-label">What you'll learn</div>
-      <div class="preview-card-large">
-        <div class="pc-day">DAY 01 — WEEK 1</div>
-        <div class="pc-topic">The OSI Model &amp; How Networks Work</div>
-        <div class="pc-bar">
-          <div class="pc-bar-fill"></div>
-        </div>
-      </div>
-      <div class="preview-cards-row">
-        <div class="preview-card-sm">
-          <div class="pc-day">DAY 14</div>
-          <div class="pc-topic">Intro to SIEM &amp; Splunk</div>
-        </div>
-        <div class="preview-card-sm">
-          <div class="pc-day">DAY 28 — EXAM</div>
-          <div class="pc-topic">Incident Detection Lab</div>
-        </div>
-      </div>
-      <div class="preview-card-sm" style="border-left: 2px solid var(--c-green);">
-        <div class="pc-day">DAY 120</div>
-        <div class="pc-topic" style="color: var(--c-paper)"><span class="material-symbols-sharp"
-            style="vertical-align: bottom; font-size: 18px;">military_tech</span> Get your certificate. You're a SOC
-          Analyst.</div>
-      </div>
-    </div>
-
-    <!-- Google OAuth Modal (now just redirects to backend OAuth) -->
-    <div id="google-modal" class="modal hidden">
-      <div class="modal-content quiz-modal-content" style="max-width:420px;text-align:center">
-        <button class="close-modal-btn" onclick="closeGoogleModal()">✕</button>
-        <span class="material-symbols-sharp" style="font-size:48px;color:#74c0fc">public</span>
-        <h2 style="color:var(--c-green);margin:12px 0 8px">Sign in with Google</h2>
-        <p style="color:var(--c-static);margin-bottom:24px">You'll be redirected to Google to sign in securely.</p>
-        <button class="quiz-btn primary" onclick="submitGoogleLogin()" style="width:100%">Continue with Google
-          →</button>
-        <p style="margin-top:12px;font-size:12px;color:var(--c-dim)">Requires Google OAuth to be configured on the
-          server.</p>
       </div>
     </div>
 
@@ -189,6 +145,12 @@
         </button>
       </nav>
 
+      <!-- Advertisement Placeholder -->
+      <div class="ad-placeholder ad-sidebar">
+        <span class="material-symbols-sharp" style="margin-bottom:8px;font-size:24px">campaign</span>
+        Ad Placement<br><span style="font-size:9px;opacity:0.7">(Carbon Ads / AdSense)</span>
+      </div>
+
       <!-- Mini Streak Display -->
       <div class="sidebar-streak" aria-live="polite">
         <div class="sidebar-streak-num" id="sidebar-streak-num">0</div>
@@ -204,6 +166,10 @@
       <header class="topbar">
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="topbar-right">
+
+          <button id="theme-toggle-btn" class="icon-btn" aria-label="Toggle Theme" onclick="toggleTheme()" style="background:none;border:none;color:var(--c-static);cursor:pointer;margin-right:12px;padding:4px">
+            <span class="material-symbols-sharp" id="theme-icon">light_mode</span>
+          </button>
           <button class="today-btn" onclick="window.goToView('today')" id="start-today-btn">
             ▶ Start Today's Lesson
           </button>
@@ -265,15 +231,15 @@
 
   </div> <!-- End App Shell -->
 
-  <script src="js/curriculum.js?v=13"></script>
-  <script src="js/streak.js?v=13"></script>
-  <script src="js/progress.js?v=13"></script>
-  <script src="js/auth.js?v=13"></script>
-  <script src="js/leaderboard.js?v=13"></script>
-  <script src="js/certificate.js?v=13"></script>
-  <script src="js/quiz.js?v=13"></script>
-  <script src="js/competitive-test.js?v=13"></script>
-  <script src="js/app.js?v=13"></script>
+  <script src="js/curriculum.js?v=20"></script>
+  <script src="js/streak.js?v=20"></script>
+  <script src="js/progress.js?v=20"></script>
+  <script src="js/auth.js?v=20"></script>
+  <script src="js/leaderboard.js?v=20"></script>
+  <script src="js/certificate.js?v=20"></script>
+  <script src="js/quiz.js?v=20"></script>
+  <script src="js/competitive-test.js?v=20"></script>
+  <script src="js/app.js?v=20"></script>
 
   <!-- UI listeners -->
   <script>

@@ -15,6 +15,7 @@ const CURRICULUM = {
         {
           id: 1,
           title: "Week 1: Networking Fundamentals",
+          image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 1,
@@ -152,6 +153,7 @@ const CURRICULUM = {
         {
           id: 2,
           title: "Week 2: Linux Command Line",
+          image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 8,
@@ -286,6 +288,7 @@ const CURRICULUM = {
         {
           id: 3,
           title: "Week 3: Windows Security Fundamentals",
+          image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 15,
@@ -419,6 +422,7 @@ const CURRICULUM = {
         {
           id: 4,
           title: "Week 4: Cybersecurity Fundamentals",
+          image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 22,
@@ -598,6 +602,7 @@ const CURRICULUM = {
         {
           id: 5,
           title: "Week 5: SIEM Fundamentals",
+          image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 31,
@@ -731,6 +736,7 @@ const CURRICULUM = {
         {
           id: 6,
           title: "Week 6: Log Analysis & Correlation",
+          image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 38,
@@ -865,6 +871,7 @@ const CURRICULUM = {
         {
           id: 7,
           title: "Week 7: Incident Response",
+          image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 45,
@@ -998,6 +1005,7 @@ const CURRICULUM = {
         {
           id: 8,
           title: "Week 8: Threat Intelligence",
+          image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 52,
@@ -1143,6 +1151,7 @@ const CURRICULUM = {
         {
           id: 9,
           title: "Week 9: Network Traffic Analysis",
+          image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 61,
@@ -1277,6 +1286,7 @@ const CURRICULUM = {
         {
           id: 10,
           title: "Week 10: Endpoint Detection & Malware Analysis",
+          image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 68,
@@ -1420,6 +1430,7 @@ const CURRICULUM = {
         {
           id: 13,
           title: "Week 13: Threat Hunting",
+          image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 91,
@@ -1553,6 +1564,7 @@ const CURRICULUM = {
         {
           id: 14,
           title: "Week 14–16: DFIR, Cloud Security & Cert Prep",
+          image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=400&q=80",
           days: [
             {
               day: 105,

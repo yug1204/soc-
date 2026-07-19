@@ -10,8 +10,21 @@ let currentDayNum = 1;
 // ─── API base URL (change to your server address if deployed) ───
 window.API_BASE = 'http://localhost:3001';
 
+// ── Error Boundary ──────────────────────────────
+window.addEventListener('unhandledrejection', (e) => {
+  console.warn('[APP] Unhandled Promise Rejection:', e.reason);
+});
+
 // ── Init ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize theme
+  const savedTheme = localStorage.getItem('soc_theme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('theme-light');
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = 'dark_mode';
+  }
+
   // Show loading state while we restore session from backend
   showBootSpinner();
 
@@ -403,7 +416,6 @@ function getResIcon(type) {
   return icons[type] || '🔗';
 }
 
-// ── CURRICULUM MAP ─────────────────────────────
 function renderCurriculum() {
   const el = document.getElementById('view-curriculum');
   
@@ -412,6 +424,13 @@ function renderCurriculum() {
       <h1><span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">account_tree</span> 120-Day SOC Analyst Curriculum</h1>
       <p>From Zero to SOC Hero — click any day to start learning</p>
     </div>
+    
+    <!-- Advertisement Placeholder -->
+    <div class="ad-placeholder ad-banner">
+      <span class="material-symbols-sharp" style="margin-bottom:8px;font-size:24px">campaign</span>
+      Ad Placement Banner<br><span style="font-size:9px;opacity:0.7">(Carbon Ads / AdSense)</span>
+    </div>
+
     <div class="phases-container">
       ${CURRICULUM.phases.map(phase => {
         const prog = getPhaseProgress(phase);
@@ -944,3 +963,16 @@ function renderCompetitiveView() {
 }
 
 window.goToView = (view) => navigateTo(view);
+
+window.toggleTheme = function() {
+  const isLight = document.body.classList.toggle('theme-light');
+  const icon = document.getElementById('theme-icon');
+  
+  if (isLight) {
+    localStorage.setItem('soc_theme', 'light');
+    if (icon) icon.textContent = 'dark_mode';
+  } else {
+    localStorage.setItem('soc_theme', 'dark');
+    if (icon) icon.textContent = 'light_mode';
+  }
+};

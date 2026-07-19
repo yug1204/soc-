@@ -33,6 +33,16 @@ app.use('/api/progress',    require('./routes/progress'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/profile',     require('./routes/profile'));
 
+// ── Serve Frontend ────────────────────────────────────────────────────────────
+// In production, serve the frontend files from the root directory
+app.use(express.static(path.join(__dirname, '..')));
+
+// Fallback all other routes to index.html (for SPA routing if needed)
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not Found' });
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', db: 'nedb', timestamp: new Date().toISOString() });

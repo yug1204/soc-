@@ -1,11 +1,30 @@
-// models/User.js — NeDB-based user model (no Mongoose)
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const db = require('../config/db');
+
+const userSchema = new mongoose.Schema({
+  name:          { type: String, default: 'Analyst' },
+  email:         { type: String, unique: true, required: true },
+  passwordHash:  { type: String, default: null },
+  loginType:     { type: String, default: 'manual' },
+  googleId:      { type: String, default: null },
+  avatar:        { type: String, default: null },
+  joinDate:      { type: String, default: () => new Date().toISOString().split('T')[0] },
+  completedDays: { type: Array, default: [] },
+  totalXP:       { type: Number, default: 0 },
+  badges:        { type: Array, default: [] },
+  notes:         { type: Array, default: [] },
+  streak:        { type: Number, default: 0 },
+  lastStudyDate: { type: String, default: null },
+  compResults:   { type: Array, default: [] }
+}, { timestamps: true });
+
+const User = mongoose.model('User', userSchema);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function toPublic(user) {
   if (!user) return null;
-  const { passwordHash, ...rest } = user;
+  const obj = user.toObject ? user.toObject() : user;
+  const { passwordHash, ...rest } = obj;
   return rest;
 }
 
@@ -18,51 +37,30 @@ function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
-// ─── Default user doc shape ───────────────────────────────────────────────────
-function defaultUser(fields) {
-  return {
-    name:          fields.name || 'Analyst',
-    email:         fields.email,
-    passwordHash:  fields.passwordHash || null,
-    loginType:     fields.loginType || 'manual',
-    googleId:      fields.googleId || null,
-    avatar:        fields.avatar || null,
-    joinDate:      todayStr(),
-    completedDays: [],
-    totalXP:       0,
-    badges:        [],
-    notes:         [],
-    streak:        0,
-    lastStudyDate: null,
-    compResults:   [],
-  };
-}
-
 // ─── CRUD helpers ─────────────────────────────────────────────────────────────
 async function findById(id) {
-  return db.users.findOne({ _id: id });
+  return User.findById(id);
 }
 
 async function findByEmail(email) {
-  return db.users.findOne({ email: email.toLowerCase().trim() });
+  return User.findOne({ email: email.toLowerCase().trim() });
 }
 
 async function findByGoogleId(googleId) {
-  return db.users.findOne({ googleId });
+  return User.findOne({ googleId });
 }
 
 async function createUser(fields) {
-  const user = defaultUser(fields);
-  user.email = user.email.toLowerCase().trim();
-  if (user.passwordHash) {
-    user.passwordHash = await bcrypt.hash(user.passwordHash, 12);
+  fields.email = fields.email.toLowerCase().trim();
+  if (fields.passwordHash) {
+    fields.passwordHash = await bcrypt.hash(fields.passwordHash, 12);
   }
-  return db.users.insert(user);
+  const user = new User(fields);
+  return user.save();
 }
 
 async function updateUser(id, updates) {
-  await db.users.update({ _id: id }, { $set: updates });
-  return findById(id);
+  return User.findByIdAndUpdate(id, { $set: updates }, { new: true });
 }
 
 async function comparePassword(user, plain) {
@@ -72,6 +70,7 @@ async function comparePassword(user, plain) {
 
 // ─── Exports ─────────────────────────────────────────────────────────────────
 module.exports = {
+  User,
   toPublic,
   getInitials,
   todayStr,
@@ -81,5 +80,4 @@ module.exports = {
   createUser,
   updateUser,
   comparePassword,
-  db,
 };
