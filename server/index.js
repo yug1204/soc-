@@ -14,8 +14,9 @@ const PORT = process.env.PORT || 3001;
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-// ── Initialize NeDB (auto-creates db files) ───────────────────────────────────
-require('./config/db');
+// ── Initialize Database ────────────────────────────────────────────────────────
+const connectDB = require('./config/db');
+connectDB();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
