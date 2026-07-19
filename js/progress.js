@@ -1,110 +1,206 @@
 // =============================================
-// PROGRESS TRACKER — XP, Badges, Completion
+// PROGRESS.JS — XP, Badges, Completion, Notes
+// Uses backend API with localStorage as cache/fallback.
 // =============================================
 
-const COMPLETED_KEY = 'soc_completed_days';
-const XP_KEY = 'soc_total_xp';
-const NOTES_PREFIX = 'soc_notes_day_';
+var progressAPI = window.API_BASE || 'http://localhost:3001';
 
-// ── Completion Tracking ──────────────────────
+// ─── In-memory progress cache (loaded once per session) ───
+let _progressCache = null;
+
+async function _loadProgress() {
+  if (_progressCache) return _progressCache;
+  try {
+    const res = await fetch(progressAPI + '/api/progress', { credentials: 'include' });
+    if (res.ok) {
+      _progressCache = await res.json();
+      // Also write to localStorage for offline resilience
+      localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+      return _progressCache;
+    }
+  } catch (e) {
+    console.warn('[PROGRESS] API unavailable, using localStorage cache');
+  }
+  // Offline fallback — read last known cache
+  const cached = localStorage.getItem('soc_progress_cache');
+  _progressCache = cached ? JSON.parse(cached) : {
+    completedDays: [], totalXP: 0, streak: 0, lastStudyDate: null, badges: [], notes: []
+  };
+  return _progressCache;
+}
+
+function _invalidateCache() {
+  _progressCache = null;
+  localStorage.removeItem('soc_progress_cache');
+}
+
+// ─── Completion Tracking ──────────────────────
 function getCompletedDays() {
-  return JSON.parse(localStorage.getItem(COMPLETED_KEY) || '[]');
+  // Sync read from cache (populated by app.js init call to loadProgressAsync)
+  return _progressCache ? _progressCache.completedDays : [];
 }
 
 function isDayComplete(dayNum) {
   return getCompletedDays().includes(dayNum);
 }
 
-function markDayComplete(dayNum, xpReward) {
-  const completed = getCompletedDays();
-  if (!completed.includes(dayNum)) {
-    completed.push(dayNum);
-    localStorage.setItem(COMPLETED_KEY, JSON.stringify(completed));
-    addXP(xpReward || 50);
-    checkBadges(completed.length);
-    return true; // newly completed
+function isDayUnlocked(dayNum) {
+  if (dayNum === 1) return true;
+  return isDayComplete(dayNum - 1);
+}
+
+async function markDayComplete(dayNum, xpReward) {
+  try {
+    const res = await fetch(`${progressAPI}/api/progress/complete/${dayNum}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ xp: xpReward || 50 }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      // Update cache from server response
+      _progressCache = {
+        completedDays: data.user.completedDays,
+        totalXP:       data.user.totalXP,
+        streak:        data.user.streak,
+        lastStudyDate: data.user.lastStudyDate,
+        badges:        data.user.badges,
+        notes:         _progressCache ? _progressCache.notes : [],
+      };
+      localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+      if (data.newBadges && data.newBadges.length > 0) checkBadges(data.user.completedDays.length);
+      return !data.alreadyDone;
+    }
+  } catch (e) {
+    console.warn('[PROGRESS] complete API failed, using localStorage:', e.message);
   }
-  return false; // already done
+  // Offline fallback
+  const days = getCompletedDays();
+  if (!days.includes(dayNum)) {
+    days.push(dayNum);
+    if (_progressCache) { _progressCache.completedDays = days; _progressCache.totalXP += (xpReward || 50); }
+    localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+    return true;
+  }
+  return false;
 }
 
-function unmarkDay(dayNum, xpReward) {
-  const completed = getCompletedDays().filter(d => d !== dayNum);
-  localStorage.setItem(COMPLETED_KEY, JSON.stringify(completed));
-  subtractXP(xpReward || 50);
+async function unmarkDay(dayNum, xpReward) {
+  try {
+    const res = await fetch(`${progressAPI}/api/progress/uncomplete/${dayNum}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ xp: xpReward || 50 }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      _progressCache = {
+        ..._progressCache,
+        completedDays: data.user.completedDays,
+        totalXP:       data.user.totalXP,
+      };
+      localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+      return;
+    }
+  } catch (e) {
+    console.warn('[PROGRESS] uncomplete API failed:', e.message);
+  }
+  // Offline fallback
+  if (_progressCache) {
+    _progressCache.completedDays = _progressCache.completedDays.filter(d => d !== dayNum);
+    _progressCache.totalXP = Math.max(0, (_progressCache.totalXP || 0) - (xpReward || 50));
+    localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+  }
 }
 
-// ── XP System ────────────────────────────────
+// ─── XP System ───────────────────────────────
 function getTotalXP() {
-  return parseInt(localStorage.getItem(XP_KEY) || '0');
+  return _progressCache ? (_progressCache.totalXP || 0) : 0;
 }
 
 function addXP(amount) {
-  const current = getTotalXP();
-  localStorage.setItem(XP_KEY, current + amount);
+  if (_progressCache) _progressCache.totalXP = (_progressCache.totalXP || 0) + amount;
 }
 
 function subtractXP(amount) {
-  const current = getTotalXP();
-  localStorage.setItem(XP_KEY, Math.max(0, current - amount));
+  if (_progressCache) _progressCache.totalXP = Math.max(0, (_progressCache.totalXP || 0) - amount);
 }
 
 function getLevel(xp) {
-  if (xp >= 10000) return { level: 10, title: 'Master Defender', next: Infinity };
-  if (xp >= 7000)  return { level: 9,  title: 'Threat Hunter',   next: 10000 };
-  if (xp >= 5000)  return { level: 8,  title: 'DFIR Specialist',  next: 7000 };
-  if (xp >= 3500)  return { level: 7,  title: 'Incident Handler', next: 5000 };
+  if (xp >= 10000) return { level: 10, title: 'Master Defender',    next: Infinity };
+  if (xp >= 7000)  return { level: 9,  title: 'Threat Hunter',      next: 10000 };
+  if (xp >= 5000)  return { level: 8,  title: 'DFIR Specialist',    next: 7000 };
+  if (xp >= 3500)  return { level: 7,  title: 'Incident Handler',   next: 5000 };
   if (xp >= 2500)  return { level: 6,  title: 'Detection Engineer', next: 3500 };
-  if (xp >= 1500)  return { level: 5,  title: 'Log Analyst',      next: 2500 };
-  if (xp >= 800)   return { level: 4,  title: 'SIEM Operator',    next: 1500 };
-  if (xp >= 400)   return { level: 3,  title: 'Security Watcher', next: 800 };
-  if (xp >= 150)   return { level: 2,  title: 'Network Novice',   next: 400 };
-  return           { level: 1,  title: 'Recruit',           next: 150 };
+  if (xp >= 1500)  return { level: 5,  title: 'Log Analyst',        next: 2500 };
+  if (xp >= 800)   return { level: 4,  title: 'SIEM Operator',      next: 1500 };
+  if (xp >= 400)   return { level: 3,  title: 'Security Watcher',   next: 800 };
+  if (xp >= 150)   return { level: 2,  title: 'Network Novice',     next: 400 };
+  return            { level: 1,  title: 'Recruit',              next: 150 };
 }
 
-// ── Badges / Achievements ─────────────────────
+// ─── Badges ──────────────────────────────────
 const BADGES = [
-  { id: 'first_day',      emoji: '🌱', name: 'First Steps',       desc: 'Complete your first lesson',         req: 1   },
-  { id: 'week_one',       emoji: '📅', name: 'Week Warrior',       desc: 'Complete 7 lessons',                 req: 7   },
-  { id: 'fortnight',      emoji: '⚔️', name: 'Fortnight Fighter',  desc: 'Complete 14 lessons',                req: 14  },
-  { id: 'phase_one',      emoji: '🏅', name: 'Foundation Laid',    desc: 'Complete 30 lessons',                req: 30  },
-  { id: 'siem_samurai',   emoji: '🥷', name: 'SIEM Samurai',       desc: 'Complete 50 lessons',                req: 50  },
-  { id: 'halfway',        emoji: '⚡', name: 'Halfway Hero',        desc: 'Complete 60 lessons',                req: 60  },
-  { id: 'threat_hunter',  emoji: '🎯', name: 'Threat Hunter',      desc: 'Complete 90 lessons',                req: 90  },
-  { id: 'centurion',      emoji: '💯', name: 'Centurion',          desc: 'Complete 100 lessons',               req: 100 },
-  { id: 'soc_analyst',    emoji: '🏆', name: 'SOC Analyst',        desc: 'Complete all 120 lessons',           req: 120 },
+  { id: 'first_day',      emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">play_circle</span>',        name: 'First Blood',      desc: 'Complete your first lesson',  req: 1   },
+  { id: 'streak_7',       emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">local_fire_department</span>', name: 'Week Warrior',     desc: 'Maintain a 7-day streak',     req: 7   },
+  { id: 'phase_one',      emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">military_tech</span>',        name: 'Foundation Laid',  desc: 'Complete 30 lessons',         req: 30  },
+  { id: 'streak_30',      emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">whatshot</span>',             name: 'Dedicated',        desc: 'Maintain a 30-day streak',    req: 30  },
+  { id: 'halfway',        emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">flash_on</span>',             name: 'Halfway Hero',     desc: 'Complete 60 lessons',         req: 60  },
+  { id: 'streak_60',      emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">electric_bolt</span>',        name: 'Unstoppable',      desc: 'Maintain a 60-day streak',    req: 60  },
+  { id: 'phase_three',    emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">radar</span>',               name: 'Advanced Operator',desc: 'Complete 90 lessons',         req: 90  },
+  { id: 'soc_analyst',    emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">workspace_premium</span>',    name: 'SOC Analyst',      desc: 'Complete all 120 lessons',    req: 120 },
 ];
 
 function getEarnedBadges() {
-  return JSON.parse(localStorage.getItem('soc_badges') || '[]');
+  return _progressCache ? (_progressCache.badges || []) : [];
 }
 
 function checkBadges(completedCount) {
   const earned = new Set(getEarnedBadges());
   const newBadges = [];
-
   BADGES.forEach(badge => {
     if (!earned.has(badge.id) && completedCount >= badge.req) {
       earned.add(badge.id);
       newBadges.push(badge);
     }
   });
-
-  if (newBadges.length > 0) {
-    localStorage.setItem('soc_badges', JSON.stringify([...earned]));
-  }
   return newBadges;
 }
 
-// ── Notes ─────────────────────────────────────
-function saveNote(dayNum, text) {
-  localStorage.setItem(NOTES_PREFIX + dayNum, text);
+// ─── Notes ───────────────────────────────────
+async function saveNote(dayNum, text) {
+  try {
+    await fetch(`${progressAPI}/api/progress/note/${dayNum}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ text }),
+    });
+    // Update local cache
+    if (_progressCache) {
+      const existing = _progressCache.notes.find(n => n.day === dayNum);
+      if (existing) existing.text = text;
+      else _progressCache.notes.push({ day: dayNum, text });
+      localStorage.setItem('soc_progress_cache', JSON.stringify(_progressCache));
+    }
+  } catch (e) {
+    console.warn('[PROGRESS] saveNote API failed:', e.message);
+    // Fallback to localStorage
+    localStorage.setItem(`soc_notes_day_${dayNum}`, text);
+  }
 }
 
 function getNote(dayNum) {
-  return localStorage.getItem(NOTES_PREFIX + dayNum) || '';
+  if (_progressCache) {
+    const note = _progressCache.notes.find(n => n.day === dayNum);
+    return note ? note.text : '';
+  }
+  return localStorage.getItem(`soc_notes_day_${dayNum}`) || '';
 }
 
-// ── Phase Progress ─────────────────────────────
+// ─── Phase Progress ───────────────────────────
 function getPhaseProgress(phase) {
   const allDays = [];
   phase.weeks.forEach(w => w.days.forEach(d => allDays.push(d.day)));
@@ -113,20 +209,45 @@ function getPhaseProgress(phase) {
   return { total: allDays.length, done: doneInPhase, pct: Math.round((doneInPhase / allDays.length) * 100) };
 }
 
-// ── Overall Stats ──────────────────────────────
+// ─── Overall Stats ────────────────────────────
 function getOverallStats() {
   const completed = getCompletedDays();
-  const xp = getTotalXP();
-  const level = getLevel(xp);
-  const badges = getEarnedBadges();
-  const streak = parseInt(localStorage.getItem('soc_streak_count') || '0');
+  const xp        = getTotalXP();
+  const level     = getLevel(xp);
+  const badges    = getEarnedBadges();
+  const streak    = _progressCache ? (_progressCache.streak || 0) : 0;
   return { completedCount: completed.length, xp, level, badgeCount: badges.length, streak };
 }
 
-export {
-  getCompletedDays, isDayComplete, markDayComplete, unmarkDay,
-  getTotalXP, addXP, getLevel,
-  BADGES, getEarnedBadges, checkBadges,
-  saveNote, getNote,
-  getPhaseProgress, getOverallStats
-};
+// ─── Competitive Results ──────────────────────
+async function saveCompResult(score, total, testId) {
+  try {
+    await fetch(`${progressAPI}/api/progress/comp-result`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ testId, score, total }),
+    });
+    // Update local cache
+    if (_progressCache) {
+      if (!_progressCache.compResults) _progressCache.compResults = [];
+      _progressCache.compResults.push({ testId, score, total, pct: Math.round((score/total)*100) });
+    }
+  } catch (e) {
+    console.warn('[PROGRESS] saveCompResult API failed:', e.message);
+    // Fallback to localStorage
+    const results = JSON.parse(localStorage.getItem('soc_comp_results') || '[]');
+    results.push({ testId, score, total, pct: Math.round((score/total)*100), date: new Date().toISOString() });
+    localStorage.setItem('soc_comp_results', JSON.stringify(results));
+  }
+}
+
+function getCompResults() {
+  if (_progressCache && _progressCache.compResults) return _progressCache.compResults;
+  return JSON.parse(localStorage.getItem('soc_comp_results') || '[]');
+}
+
+// ─── Bootstrap: called once at app start ──────
+async function loadProgressAsync() {
+  return await _loadProgress();
+}

@@ -1,58 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOC Analyst Academy — Learn Cybersecurity in 120 Days</title>
-  <meta name="description" content="A gamified 120-day learning journey from zero to SOC Analyst. Daily streak tracking, curated YouTube videos, hands-on labs, and achievement badges." />
-  <meta name="keywords" content="SOC analyst, cybersecurity, SIEM, threat hunting, incident response, learn cybersecurity" />
+  <meta name="description"
+    content="A gamified 120-day learning journey from zero to SOC Analyst. Daily streak tracking, curated YouTube videos, hands-on labs, and achievement badges." />
+  <meta name="keywords"
+    content="SOC analyst, cybersecurity, SIEM, threat hunting, incident response, learn cybersecurity" />
 
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌖</text></svg>" />
+
+  <!-- Google Fonts & Material Symbols (Sharp variant for cyber aesthetic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,400,0,0" />
 
   <!-- CSS -->
-  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/main.css?v=10" />
 </head>
+
 <body>
 
-  <div class="app-shell">
+  <!-- Matrix rain canvas — fixed background layer -->
+  <canvas id="matrix-bg"></canvas>
+
+  <!-- Boot spinner — shown while restoring session from backend -->
+  <div id="boot-spinner"
+    style="display:flex;position:fixed;inset:0;z-index:99999;background:#000;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    <span class="material-symbols-sharp"
+      style="font-size:64px;color:var(--c-green);text-shadow:0 0 24px var(--c-green);animation:pulse 1.5s ease-in-out infinite">radar</span>
+    <div style="font-family:'JetBrains Mono',monospace;color:var(--c-green);font-size:14px;letter-spacing:0.1em">
+      ESTABLISHING SECURE CONNECTION...</div>
+  </div>
+
+  <!-- ── LOGIN SCREEN ──────────────────────────── -->
+  <div id="login-screen" class="login-screen" style="display:none">
+
+    <!-- Left: Mission Brief -->
+    <div class="login-brief">
+      <span class="login-logo" style="color:var(--c-green); text-shadow:0 0 12px var(--c-green)"><span
+          class="material-symbols-sharp" style="font-size: 48px;">radar</span></span>
+      <h1 class="login-title">120 days.<br>One lesson a day.<br><em>SOC analyst</em><br>on day 121.</h1>
+      <p class="login-sub">A structured path from zero to working security analyst. No experience needed. No skipping.
+      </p>
+
+      <div class="login-options">
+        <button class="login-btn google-btn" onclick="showGoogleLogin()">
+          <span class="login-btn-icon material-symbols-sharp" style="color:#74c0fc">public</span> Continue with Google
+        </button>
+        <button class="login-btn manual-btn" onclick="showManualLogin()">
+          <span class="login-btn-icon material-symbols-sharp" style="color:#cc5de8">mail</span> Sign in with Email
+        </button>
+        <div class="login-divider"><span>or</span></div>
+        <button class="login-btn demo-btn" onclick="loginAsDemo()">
+          <span class="login-btn-icon material-symbols-sharp" style="color:var(--c-static)">fingerprint</span> Try it
+          without signing up
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Curriculum Preview -->
+    <div class="login-preview">
+      <div class="login-preview-label">What you'll learn</div>
+      <div class="preview-card-large">
+        <div class="pc-day">DAY 01 — WEEK 1</div>
+        <div class="pc-topic">The OSI Model &amp; How Networks Work</div>
+        <div class="pc-bar">
+          <div class="pc-bar-fill"></div>
+        </div>
+      </div>
+      <div class="preview-cards-row">
+        <div class="preview-card-sm">
+          <div class="pc-day">DAY 14</div>
+          <div class="pc-topic">Intro to SIEM &amp; Splunk</div>
+        </div>
+        <div class="preview-card-sm">
+          <div class="pc-day">DAY 28 — EXAM</div>
+          <div class="pc-topic">Incident Detection Lab</div>
+        </div>
+      </div>
+      <div class="preview-card-sm" style="border-left: 2px solid var(--c-green);">
+        <div class="pc-day">DAY 120</div>
+        <div class="pc-topic" style="color: var(--c-paper)"><span class="material-symbols-sharp"
+            style="vertical-align: bottom; font-size: 18px;">military_tech</span> Get your certificate. You're a SOC
+          Analyst.</div>
+      </div>
+    </div>
+
+    <!-- Google OAuth Modal (now just redirects to backend OAuth) -->
+    <div id="google-modal" class="modal hidden">
+      <div class="modal-content quiz-modal-content" style="max-width:420px;text-align:center">
+        <button class="close-modal-btn" onclick="closeGoogleModal()">✕</button>
+        <span class="material-symbols-sharp" style="font-size:48px;color:#74c0fc">public</span>
+        <h2 style="color:var(--c-green);margin:12px 0 8px">Sign in with Google</h2>
+        <p style="color:var(--c-static);margin-bottom:24px">You'll be redirected to Google to sign in securely.</p>
+        <button class="quiz-btn primary" onclick="submitGoogleLogin()" style="width:100%">Continue with Google
+          →</button>
+        <p style="margin-top:12px;font-size:12px;color:var(--c-dim)">Requires Google OAuth to be configured on the
+          server.</p>
+      </div>
+    </div>
+
+    <!-- Login / Register Modal -->
+    <div id="manual-modal" class="modal hidden">
+      <div class="modal-content quiz-modal-content" style="max-width:420px" id="manual-modal-mode" data-mode="login">
+        <button class="close-modal-btn" onclick="closeManualModal()">✕</button>
+        <div style="text-align:center;margin-bottom:24px">
+          <span class="material-symbols-sharp" style="font-size:48px;color:#cc5de8">mail</span>
+          <h2 id="manual-modal-title" style="color:var(--c-green);margin:12px 0 4px">Login</h2>
+          <p style="color:var(--c-static)">Sign in to sync your progress to the cloud</p>
+        </div>
+        <div id="manual-name-row" style="display:none;margin-bottom:12px">
+          <input id="manual-name-input" type="text" class="login-input" placeholder="Your Full Name" />
+        </div>
+        <input id="manual-email-input" type="email" class="login-input" placeholder="your@email.com"
+          style="margin-bottom:12px" />
+        <input id="manual-password-input" type="password" class="login-input" placeholder="Password (min 6 chars)" />
+        <button id="manual-submit-btn" class="quiz-btn primary" onclick="submitManualLogin()"
+          style="width:100%;margin-top:12px">Login</button>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--c-static)">
+          <a id="manual-toggle-link" onclick="toggleManualMode()" style="color:var(--c-green);cursor:pointer">Don't have
+            an account? Register</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN APP SHELL ──────────────────────────── -->
+  <div class="app-shell" id="app-shell" style="display:none">
 
     <!-- ── Sidebar ──────────────────────────── -->
     <aside class="sidebar" role="navigation" aria-label="Main navigation">
       <div class="sidebar-logo">
-        <span class="logo-icon" aria-hidden="true">🛡️</span>
-        <div class="logo-title">SOC Analyst<br>Academy</div>
-        <div class="logo-sub">Zero to Defender</div>
+        <span class="logo-icon material-symbols-sharp"
+          style="color:var(--c-green);text-shadow:0 0 10px var(--c-green); font-size: 32px"
+          aria-hidden="true">radar</span>
+        <div class="logo-text">
+          <div class="logo-title">SOC Analyst</div>
+          <div class="logo-sub" style="color:var(--c-green)">[ACADEMY] v2.0</div>
+        </div>
       </div>
 
       <nav class="nav-section">
-        <div class="nav-label">Navigate</div>
+        <div class="nav-label">MAIN PANEL</div>
 
         <button class="nav-btn active" data-nav="dashboard" id="nav-dashboard" aria-label="Dashboard">
-          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">monitor</span>
           <span>Dashboard</span>
         </button>
 
         <button class="nav-btn" data-nav="today" id="nav-today" aria-label="Today's Lesson">
-          <span class="nav-icon" aria-hidden="true">📅</span>
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">crisis_alert</span>
           <span>Today's Lesson</span>
         </button>
 
         <button class="nav-btn" data-nav="curriculum" id="nav-curriculum" aria-label="Curriculum Map">
-          <span class="nav-icon" aria-hidden="true">📚</span>
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">account_tree</span>
           <span>Curriculum</span>
         </button>
 
+        <div class="nav-label" style="margin-top:16px">RECORDS</div>
+
+        <button class="nav-btn" data-nav="profile" id="nav-profile" aria-label="Profile">
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">fingerprint</span>
+          <span>Profile</span>
+        </button>
+
         <button class="nav-btn" data-nav="achievements" id="nav-achievements" aria-label="Achievements">
-          <span class="nav-icon" aria-hidden="true">🏆</span>
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">military_tech</span>
           <span>Achievements</span>
+        </button>
+
+        <div class="nav-label" style="margin-top:16px">NETWORK</div>
+
+        <button class="nav-btn" data-nav="competitive" id="nav-competitive" aria-label="Competitive Tests">
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">swords</span>
+          <span>Compete</span>
+        </button>
+
+        <button class="nav-btn" data-nav="leaderboard" id="nav-leaderboard" aria-label="Leaderboard">
+          <span class="nav-icon material-symbols-sharp" aria-hidden="true">leaderboard</span>
+          <span>Leaderboard</span>
         </button>
       </nav>
 
       <!-- Mini Streak Display -->
       <div class="sidebar-streak" aria-live="polite">
         <div class="sidebar-streak-num" id="sidebar-streak-num">0</div>
-        <div class="sidebar-streak-lbl">Day Streak 🔥</div>
+        <div class="sidebar-streak-lbl"><span class="material-symbols-sharp"
+            style="font-size:12px;vertical-align:bottom">bolt</span> System Uptime</div>
       </div>
     </aside>
 
@@ -66,6 +207,7 @@
           <button class="today-btn" onclick="window.goToView('today')" id="start-today-btn">
             ▶ Start Today's Lesson
           </button>
+          <div class="topbar-avatar" id="topbar-avatar" onclick="window.goToView('profile')" title="My Profile">?</div>
         </div>
       </header>
 
@@ -74,58 +216,171 @@
 
         <!-- Dashboard View -->
         <section class="view" id="view-dashboard" role="main" aria-label="Dashboard">
-          <!-- Rendered by app.js -->
           <div style="text-align:center;padding:60px;color:var(--text-dim)">Loading...</div>
         </section>
 
         <!-- Today's Lesson View -->
         <section class="view" id="view-today" role="main" aria-label="Today's Lesson">
-          <!-- Rendered by app.js -->
         </section>
 
         <!-- Curriculum View -->
         <section class="view" id="view-curriculum" role="main" aria-label="Curriculum Map">
-          <!-- Rendered by app.js -->
         </section>
 
         <!-- Achievements View -->
         <section class="view" id="view-achievements" role="main" aria-label="Achievements">
-          <!-- Rendered by app.js -->
+        </section>
+
+        <!-- Profile View -->
+        <section class="view" id="view-profile" role="main" aria-label="My Profile">
+        </section>
+
+        <!-- Leaderboard View -->
+        <section class="view" id="view-leaderboard" role="main" aria-label="Leaderboard">
+        </section>
+
+        <!-- Competitive Test View -->
+        <section class="view" id="view-competitive" role="main" aria-label="Competitive Tests">
+        </section>
+
+        <!-- Certificate View -->
+        <section class="view" id="view-certificate" role="main" aria-label="Certificate">
+          <div class="profile-header">
+            <h1>🎓 Your Certificate</h1>
+          </div>
+          <div id="cert-render-target"></div>
         </section>
 
       </main>
-    </div>
-  </div>
 
-  <!-- JS — Module -->
-  <script type="module">
-    import { initStreak, getStreak } from './js/streak.js';
-    import './js/app.js';
+      <!-- Quiz Modal -->
+      <div id="quiz-modal" class="modal hidden">
+        <div class="modal-content quiz-modal-content">
+          <button class="close-modal-btn" onclick="closeQuiz()">✕</button>
+          <div id="quiz-content"></div>
+        </div>
+      </div>
 
-    // Update sidebar streak number reactively
-    function updateSidebarStreak() {
-      const el = document.getElementById('sidebar-streak-num');
-      if (el) el.textContent = getStreak();
-    }
+    </div> <!-- End Main Content -->
 
-    // Sync topbar title with nav
+  </div> <!-- End App Shell -->
+
+  <script src="js/curriculum.js?v=13"></script>
+  <script src="js/streak.js?v=13"></script>
+  <script src="js/progress.js?v=13"></script>
+  <script src="js/auth.js?v=13"></script>
+  <script src="js/leaderboard.js?v=13"></script>
+  <script src="js/certificate.js?v=13"></script>
+  <script src="js/quiz.js?v=13"></script>
+  <script src="js/competitive-test.js?v=13"></script>
+  <script src="js/app.js?v=13"></script>
+
+  <!-- UI listeners -->
+  <script>
     document.querySelectorAll('[data-nav]').forEach(btn => {
       btn.addEventListener('click', () => {
         const titles = {
           dashboard: 'Dashboard',
           today: "Today's Lesson",
           curriculum: '120-Day Curriculum',
-          achievements: 'Achievements & Badges'
+          achievements: 'Achievements & Badges',
+          profile: 'My Profile',
+          leaderboard: 'Leaderboard',
+          competitive: 'Competitive Tests',
+          certificate: 'Certificate'
         };
         const topbar = document.getElementById('topbar-title');
         if (topbar) topbar.textContent = titles[btn.getAttribute('data-nav')] || '';
-        updateSidebarStreak();
+        const el = document.getElementById('sidebar-streak-num');
+        if (el && typeof getStreak === 'function') el.textContent = getStreak();
       });
     });
+    setTimeout(() => {
+      const el = document.getElementById('sidebar-streak-num');
+      if (el && typeof getStreak === 'function') el.textContent = getStreak();
+    }, 300);
+  </script>
 
-    // Initial update
-    setTimeout(updateSidebarStreak, 100);
+  <!-- Certificate view auto-render -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Override navigateTo to also handle certificate view
+      const _origNav = window.navigateTo;
+    });
+  </script>
+
+  <!-- ── Matrix Rain Engine ───────────────────── -->
+  <script>
+    (function () {
+      const canvas = document.getElementById('matrix-bg');
+      const ctx = canvas.getContext('2d');
+
+      // Characters: mix of katakana, latin, digits — classic matrix feel
+      const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}|\\!@#$%^&*';
+      const FONT_SIZE = 14;
+      let columns = [];
+      let animId;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cols = Math.floor(canvas.width / FONT_SIZE);
+        // Keep existing drops if we already have them; extend/shrink
+        while (columns.length < cols) columns.push(Math.random() * -100);
+        columns.length = cols;
+      }
+
+      function draw() {
+        // Fade trail — dark translucent overlay
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.055)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = FONT_SIZE + 'px "JetBrains Mono", monospace';
+
+        for (let i = 0; i < columns.length; i++) {
+          const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+          const x = i * FONT_SIZE;
+          const y = columns[i] * FONT_SIZE;
+
+          // Head character — bright green
+          ctx.fillStyle = '#AAFFAA';
+          ctx.fillText(char, x, y);
+
+          // Body — darker green
+          if (columns[i] > 2) {
+            ctx.fillStyle = '#00CC33';
+            ctx.fillText(CHARS[Math.floor(Math.random() * CHARS.length)], x, y - FONT_SIZE);
+          }
+
+          // Reset column when it goes off screen; random reset chance for variety
+          if (y > canvas.height && Math.random() > 0.975) {
+            columns[i] = 0;
+          }
+          columns[i] += 0.5;
+        }
+        animId = requestAnimationFrame(draw);
+      }
+
+      // Pause when tab is hidden — saves CPU
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(animId);
+        else animId = requestAnimationFrame(draw);
+      });
+
+      // Respect reduced-motion: just show a static dim green gradient
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        resize();
+        ctx.fillStyle = '#001800';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      draw();
+    })();
   </script>
 
 </body>
+
 </html>

@@ -66,8 +66,8 @@ function getVisitHistory() {
 
 function getStreakLevel(streak) {
   if (streak >= 100) return { label: 'LEGEND', color: '#ff0080', emoji: '💎' };
-  if (streak >= 60)  return { label: 'ELITE', color: '#cc00ff', emoji: '⚡' };
-  if (streak >= 30)  return { label: 'VETERAN', color: '#ff6b35', emoji: '🔥' };
+  if (streak >= 60)  return { label: 'ELITE', color: '#cc00ff', emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">electric_bolt</span>' };
+  if (streak >= 30)  return { label: 'VETERAN', color: '#ff6b35', emoji: '<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">whatshot</span>' };
   if (streak >= 14)  return { label: 'CONSISTENT', color: '#00ccff', emoji: '🌊' };
   if (streak >= 7)   return { label: 'ON A ROLL', color: '#00ff88', emoji: '✨' };
   if (streak >= 3)   return { label: 'BUILDING', color: '#88ff00', emoji: '🌱' };
@@ -152,8 +152,8 @@ function showStreakNotification(streak) {
   if (!canNotify || !('Notification' in window)) return;
 
   const msgs = [
-    `🔥 ${streak} day streak! Don't break it — study now!`,
-    `⚡ You're on fire! ${streak} days straight!`,
+    `<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">bolt</span> ${streak} day uptime! Don't break it — study now!`,
+    `<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">electric_bolt</span> Perfect uptime! ${streak} days straight!`,
     `🎯 SOC Analyst in progress — ${streak} days strong!`,
     `💪 Keep going! Your ${streak}-day streak is waiting!`
   ];
@@ -165,4 +165,4 @@ function showStreakNotification(streak) {
   });
 }
 
-export { initStreak, getStreak, getVisitHistory, getStreakLevel, getHeatmapData, renderHeatmap, requestNotificationPermission, showStreakNotification };
+// streak.js loaded as plain script - functions available globally

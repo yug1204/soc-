@@ -1613,7 +1613,7 @@ const CURRICULUM = {
             },
             {
               day: 120,
-              topic: "🎓 GRADUATION DAY — You're a SOC Analyst!",
+              topic: `<span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">workspace_premium</span> GRADUATION DAY — You're a SOC Analyst!`,
               description: "You've completed the 120-day journey from zero to SOC Analyst! Apply for BTL1 certification, build your portfolio, and start applying for jobs.",
               duration: "60 min",
               difficulty: "Advanced",
@@ -1663,4 +1663,4 @@ function getTodayDayNumber() {
   return Math.min(diff, 120);
 }
 
-export { CURRICULUM, getAllDays, getDayData, getTodayDayNumber };
+// curriculum.js loaded as plain script - functions available globally
