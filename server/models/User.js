@@ -68,6 +68,10 @@ async function comparePassword(user, plain) {
   return bcrypt.compare(plain, user.passwordHash);
 }
 
+async function deleteUser(id) {
+  return User.findByIdAndDelete(id);
+}
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 module.exports = {
   User,
@@ -79,5 +83,6 @@ module.exports = {
   findByGoogleId,
   createUser,
   updateUser,
+  deleteUser,
   comparePassword,
 };

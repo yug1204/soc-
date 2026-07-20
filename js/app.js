@@ -735,6 +735,32 @@ window.logoutUser = function() {
   logout();
 };
 
+window.deleteAccount = async function() {
+  const confirmDelete = confirm("⚠️ Are you absolutely sure you want to delete your account? This action cannot be undone and you will lose all your progress, badges, and XP permanently.");
+  if (!confirmDelete) return;
+
+  try {
+    const apiBase = window.API_BASE !== undefined ? window.API_BASE : '';
+    const res = await fetch(`${apiBase}/api/profile`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('soc_token')}`
+      }
+    });
+
+    if (res.ok) {
+      alert("Your account has been successfully deleted. We're sorry to see you go!");
+      logout();
+    } else {
+      const data = await res.json();
+      alert("Failed to delete account: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Delete account error:", err);
+    alert("An error occurred while trying to delete your account.");
+  }
+};
+
 // ── Profile View ───────────────────────────────
 function renderProfileView() {
   const el = document.getElementById('view-profile');
@@ -766,6 +792,7 @@ function renderProfileView() {
         <div class="profile-join">Joined: ${profile.joinDate}</div>
         <div class="profile-login-type">${profile.loginType === 'google' ? '🔵 Google Account' : profile.loginType === 'demo' ? '👤 Demo Account' : '✉️ Email Account'}</div>
         <button class="quiz-btn warning" onclick="window.logoutUser()" style="margin-top:16px;width:100%">🚪 Logout</button>
+        <button class="quiz-btn" onclick="window.deleteAccount()" style="margin-top:8px;width:100%;background-color:var(--coral);color:#fff">⚠️ Delete Account</button>
       </div>
 
       <!-- Stats Card -->

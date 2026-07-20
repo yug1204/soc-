@@ -1,7 +1,7 @@
 // routes/profile.js — Read and update user profile (NeDB version)
 const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
-const { updateUser, toPublic } = require('../models/User');
+const { updateUser, deleteUser, toPublic } = require('../models/User');
 
 router.use(requireAuth);
 
@@ -22,6 +22,18 @@ router.put('/', async (req, res) => {
     return res.json({ user: toPublic(user) });
   } catch (err) {
     console.error('[PROFILE] update error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DELETE /api/profile — delete the user's account
+router.delete('/', async (req, res) => {
+  try {
+    await deleteUser(req.user._id);
+    // Note: If you want to delete their progress data too, you can add that logic here in the future
+    return res.json({ success: true, message: 'Account deleted successfully' });
+  } catch (err) {
+    console.error('[PROFILE] delete error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
