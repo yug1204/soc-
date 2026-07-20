@@ -33,6 +33,7 @@ app.use('/api/auth',        require('./routes/auth'));
 app.use('/api/progress',    require('./routes/progress'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/profile',     require('./routes/profile'));
+app.use('/api/comments',    require('./routes/comments'));
 
 // ── Serve Frontend ────────────────────────────────────────────────────────────
 // In production, serve the frontend files from the root directory

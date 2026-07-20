@@ -386,8 +386,28 @@ function renderTodayLesson(dayNum) {
           : '<div></div>'}
       </div>
 
+      <!-- Discussion Board -->
+      <div class="discussion-section" style="margin-top:40px;border-top:1px solid var(--border);padding-top:20px">
+        <h3 class="section-heading"><span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">forum</span> Discussion Board</h3>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">Ask questions or share tips about Day ${dayNum}.</p>
+        
+        <div id="comments-container-${dayNum}" style="margin-bottom:20px;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+          <div style="color:var(--text-secondary)">Loading comments...</div>
+        </div>
+
+        <form class="comment-form" onsubmit="window.postComment(event, ${dayNum})" style="display:flex;gap:8px">
+          <input type="text" id="comment-input-${dayNum}" placeholder="Add a comment..." required style="flex:1;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary);border-radius:8px">
+          <button type="submit" class="quiz-btn primary" style="width:auto;padding:0 24px">Post</button>
+        </form>
+      </div>
+
     </div>
   `;
+
+  // Fetch comments
+  if (typeof window.loadComments === 'function') {
+    window.loadComments(dayNum);
+  }
 
   // Animate the Mission Clock bar — the one page-load moment
   requestAnimationFrame(() => {
@@ -825,7 +845,7 @@ function renderProfileView() {
       </div>
 
       <!-- Certificate Card -->
-      <div class="card profile-cert-card ${allDone ? '' : 'locked'}">
+      <div class="card profile-cert-card">
         <div class="card-tag"><span class="material-symbols-sharp" style="font-size:inherit;vertical-align:middle">workspace_premium</span> CERTIFICATE</div>
         ${allDone
           ? `<p style="color:var(--text-secondary);margin-bottom:16px">Congratulations on completing all 120 days! Download your certificate below.</p>

@@ -14,7 +14,8 @@ function renderCertificate(containerId) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="cert-wrap" id="certificate-print-area">
+    <div class="cert-wrap" id="certificate-print-area" style="${completed < 120 ? 'opacity: 0.6; filter: grayscale(50%);' : ''}">
+      ${completed < 120 ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:64px;color:rgba(255,0,0,0.2);font-weight:900;border:8px solid rgba(255,0,0,0.2);padding:16px;z-index:10;pointer-events:none">PREVIEW</div>' : ''}
       <div class="cert-border">
         <div class="cert-corner tl"></div>
         <div class="cert-corner tr"></div>
@@ -76,8 +77,12 @@ function renderCertificate(containerId) {
       </div>
     </div>
 
-    <div class="cert-actions">
-      <button class="quiz-btn primary" onclick="window.print()">🖨️ Download / Print Certificate</button>
+    <div class="cert-actions" style="display:flex;gap:12px;justify-content:center">
+      ${completed >= 120 
+        ? `<button class="quiz-btn primary" onclick="window.print()">🖨️ Download / Print Certificate</button>
+           <button class="quiz-btn" style="background:#0a66c2;color:white" onclick="window.open('https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=SOC+Analyst+Academy+Certification&organizationName=SOC+Analyst+Academy&issueYear=${today.getFullYear()}&issueMonth=${today.getMonth()+1}&certUrl=${window.location.origin}', '_blank')">in Add to LinkedIn</button>`
+        : `<p style="color:var(--text-secondary)">Complete all 120 days to unlock downloads and LinkedIn export!</p>`
+      }
     </div>
   `;
 }
